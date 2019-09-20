@@ -1,0 +1,1255 @@
+---
+title: "Graphics and Visualization<br/>"
+subtitle: "R for beginners (?) course"
+author: "Daniel Ariza Suarez"
+institute: "[&lt;d.ariza@cgiar.org&gt;](mailto:d.ariza@cgiar.org)"
+date: "2019-09-17 (updated: `r Sys.Date()`)"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+class: center, middle, inverse
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+library(ggplot2)
+```
+
+# ggplot2
+
+---
+class: middle
+
+# What is ggplot2 ?
+
+
+--
+
+- **ggplot2** is an `R` package for producing statistical or data graphics
+
+--
+
+```{r eval=FALSE, tidy=FALSE}
+install.packages("ggplot2")
+library(ggplot)
+```
+
+--
+
+- Its carefully chosen defaults mean that you can produce publication-quality graphics in seconds: **You can focus on creating the graph that best reveal the message in your data**
+
+---
+
+# Hands on `ggplot2`
+
+For our first plot, we will use the dataset **`mpg`**
+
+**`mpg`** contains information about the fuel economy of popular car models in 1999 and 2008, collected by the [US Environmental Protection Agency](http://fueleconomy.gov).
+You can access the data in **`mpg`** by loading `ggplot2`:
+
+```{r eval=FALSE, tidy=FALSE}
+library(ggplot)
+View(mpg)
+str(mpg)
+```
+
+--
+
+- `cty` and `hwy` describe miles per gallon in the city and the highway
+- `displ` is the engine displacement in litres
+- `drv` is the drivetrain: (f) Front wheel (f) drive ; (r) Rear wheel drive ; (4) 4 wheel drive
+- `model` is the model of the car
+- `class` is a categorical variable describing the 'type' of car: Two-seatter, SUV, compact, etc.
+
+---
+
+# `mpg`
+
+```{r, echo=TRUE}
+str(mpg)
+```
+
+---
+class: middle
+
+# Quick problem
+
+Most countries use fuel consumption (fuel consumed over fixed distance) rather than fuel economy (distance traveled with fixed amount of fuel).
+
+Add a new column to `mpg` converting `cty` into ***l / 100km*** ?
+
+$$\frac{l}{100\ km}=\frac{mi}{gal}\ × \frac{1.609\ km}{1\ mi}\ × \frac{1\ gal}{3.785\ l}\ $$
+
+--
+
+```{r eval=TRUE, tidy=FALSE}
+mpg$fc_cty <- (mpg$cty) * (1.609 / 3.785)
+```
+
+--
+
+```{r eval=require('DT'), tidy=FALSE, echo=F}
+knitr::kable(mpg[1:5,c(1,2,4,5,8,12)], format = 'html')
+```
+
+---
+
+# My first plot (?)
+
+```{r eval=FALSE, tidy=FALSE}
+ggplot(data = mpg, aes(x = displ, y = hwy)) + geom_point()
+```
+
+--
+
+```{r plot1, echo=FALSE, fig.height=4, dev='svg'}
+ggplot(data = mpg, aes(x = displ, y = hwy)) + geom_point()
+```
+
+---
+
+## Every `ggplot2` plot has three main components:
+
+```{r eval=FALSE, tidy=FALSE}
+ggplot(data = mpg, aes(x = displ, y = hwy)) + geom_point()
+```
+
+--
+
+- **Data**:     `mpg`
+
+--
+
+- **Aesthetic mappings**: Association between variables in the data and visual properties.
+ + `displ ->` *X* axis
+ + `hwy   ->` *Y* axis
+
+--
+ + *Quasiquotation:* `aes()` is a *quoting function*. This means that its inputs are quoted to be evaluated in the context of the data
+
+--
+
+- **Layer**: Describes how to render each observation. In this case, we used points as the main layer. Layers in ggplot are usually created with a **`geom_XXX()`** function.
+
+### -> The grammar of graphics
+
+---
+class: middle
+
+```{r plot1_1, fig.height=3.5, dev='svg'}
+ ggplot(data = mpg, aes(x = displ, y = hwy)) + geom_point()
+```
+
+The structure of this function call shows that **Data** and **Aesthetic mappings** are passed to ggplot2 using the **`ggplot()`** function
+
+Then layers are added on with **`+`**
+
+---
+class: middle
+
+# Hands on `ggplot2`
+
+Explain each of the following plots.
+Find out what the dataset contains and what the plotted variables mean.
+
+```{r eval=FALSE, tidy=FALSE}
+ggplot(data = diamonds, aes(x = carat, y = price)) + geom_point() #<<
+```
+```{r eval=FALSE, tidy=FALSE}
+ggplot(data = economics, aes(x = date, y = unemploy)) + geom_line() #<<
+```
+```{r eval=FALSE, tidy=FALSE}
+ggplot(data = mpg, aes(x = cty)) + geom_histogram() #<<
+```
+
+---
+class: middle
+
+```{r plot2, echo=TRUE, warning=FALSE, fig.height=4, dev='svg', fig.align='center'}
+ggplot(data = diamonds, aes(x = carat, y = price)) + geom_point()
+```
+
+--
+
+- `carat`: Weight of the diamond
+- `price`: Price in US dollars
+
+---
+class: middle
+
+```{r plot3, echo=TRUE, warning=FALSE, fig.height=4, dev='svg', fig.align='center'}
+ggplot(data = economics, aes(x = date, y = unemploy)) + geom_line()
+```
+
+--
+
+- `date`: Month of data collection
+- `unemploy`: Number of unemployed in thousands
+
+---
+class: middle
+
+```{r plot4, echo=TRUE, warning=FALSE, fig.height=4, dev='svg', fig.align='center'}
+ggplot(data = mpg, aes(x = cty)) + geom_histogram()
+```
+
+--
+
+<br/>The [warning message](https://www.dummies.com/programming/r/how-to-read-errors-and-warnings-in-r/) shows that this histogram has 30 bins (ranges or bars) by default, and they should be modified accordingly.
+
+---
+class: middle, center, inverse
+
+# Scatterplots
+
+---
+
+## Additional features of `geom_point()`
+Let's play with other features of **`geom_point()`**
+
+```{r eval=FALSE, tidy=FALSE}
+ggplot(mpg, aes(x = displ, y = hwy)) + geom_point(shape = 12)
+```
+```{r eval=FALSE, tidy=FALSE}
+ggplot(mpg, aes(x = displ, y = hwy)) + geom_point(color = 'red')
+```
+```{r eval=FALSE, tidy=FALSE}
+ggplot(mpg, aes(x = displ, y = hwy)) + geom_point(size = 3)
+```
+
+---
+
+```{r plot5, echo=TRUE, warning=TRUE, fig.height=4, dev='svg', fig.align='center'}
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point(shape = 21, colour = "blue", size = 5)
+```
+--
+
+### What is `shape = 21` ?
+### How blue is `'blue'` ?
+
+---
+class: middle
+
+## What is `shape = 21` ?
+
+```{r plot27, echo=FALSE, warning=FALSE, fig.height=4, dev='svg', fig.align='center'}
+shapes <- data.frame(
+  shape = c(0:19, 22, 21, 24, 23, 20),
+  x = 0:24 %/% 5,
+  y = -(0:24 %% 5)
+)
+ggplot(shapes, aes(x, y)) + 
+  geom_point(aes(shape = shape), size = 5, fill = "red") +
+  geom_text(aes(label = shape), hjust = 0, nudge_x = 0.15) +
+  scale_shape_identity() +
+  expand_limits(x = 4.1) +
+  theme_void()
+```
+
+---
+background-image: url(https://www.datanovia.com/en/wp-content/uploads/dn-tutorials/ggplot2/images/0100-r-color-names-plot-1.png)
+background-size: 500px
+background-position: 50% 70%
+
+# How blue is `'blue'` ?
+
+Check http://www.stat.columbia.edu/~tzheng/files/Rcolor.pdf
+
+---
+class: middle
+
+## Other `aes()` mappings: `color`
+
+```{r eval=FALSE, tidy=FALSE}
+ggplot(mpg, aes(x = displ, y = hwy, color = class)) + geom_point()
+```
+
+--
+
+```{r plot6, echo=FALSE, warning=TRUE, fig.height=3, fig.width=4.5, dev='svg', fig.align='center'}
+ggplot(mpg, aes(x = displ, y = hwy,
+                color = class)) + #<<
+  geom_point()
+```
+
+- `ggplot2` gives each point a unique color corresponding to its class.<br/>
+- The legend allows us to read data values from the colour, showing us that the group of cars with unusually high fuel economy for their engine size are two seaters: cars with big engines but lightweight bodies.
+
+---
+
+background-image: url(https://ggplot2-book.org/diagrams/colour-wheel.png)
+background-size: 300px
+background-position: 80% 60%
+
+# Color selection by ggplot2
+
+```{r plot7, echo=TRUE, warning=TRUE, fig.height=3.5, fig.width=4, dev='svg', fig.align='left'}
+ggplot(mpg, aes(x = displ, y = hwy, color = class)) + geom_point()
+```
+
+Check [colors in ggplot2](<http://www.cookbook-r.com/Graphs/Colors_(ggplot2)>)
+
+---
+class: middle
+
+# Passing arguments to ggplot2
+
+.pull-left[
+
+```{r plot8, echo=TRUE, warning=TRUE, fig.height=4, dev='svg'}
+ggplot(data = mpg) +
+ geom_point(aes(  x   = displ,
+                  y   = hwy,
+                color = class))
+```
+
+]
+
+.pull-right[
+
+```{r plot9, echo=TRUE, warning=TRUE, fig.height=4, dev='svg'}
+ggplot(data  = mpg,
+       aes(x = displ,
+           y = hwy)) +
+ geom_point(aes(color = class))
+```
+
+]
+
+Any of these structures generates the same plot
+
+---
+class: middle
+
+## What if we map a continuous variable to `color` ?
+
+```{r eval=FALSE, tidy=FALSE}
+ggplot(mpg, aes(x = displ, y = hwy,
+                color = cty)) + #<<
+  geom_point()
+```
+
+--
+
+```{r plot10, echo=FALSE, fig.height=4, dev='svg', fig.align='center'}
+ggplot(mpg, aes(x = displ, y = hwy, color = cty)) + geom_point()
+```
+
+---
+
+# Mapping the same variable twice ...
+
+```{r eval=FALSE, tidy=FALSE}
+ggplot(data = diamonds) +
+  geom_point(aes(x = carat, y = price, color = price)) #<<
+```
+--
+
+```{r plot11, echo=FALSE, fig.height=3.5, dev='svg', fig.align='center'}
+ggplot(data = diamonds, aes(x = carat, y = price, color = price)) + geom_point()
+```
+
+### ... looks fancy, but makes no sense.
+
+---
+
+# Adjusting transparency with `alpha`
+
+```{r plot12, echo=TRUE, fig.height=4, dev='svg', fig.align='center'}
+ggplot(data = diamonds, aes(x = carat, y = price)) +
+  geom_point(alpha = 0.1) #<<
+```
+
+---
+class: middle
+
+## Other `aes()` mappings: `size`
+
+```{r eval=FALSE, tidy=FALSE}
+ ggplot(mpg, aes(x = displ, y = hwy,
+                 size = cyl)) + #<<
+   geom_point(alpha = 0.1)
+```
+
+--
+
+```{r plot17, echo=FALSE, warning=TRUE, fig.height=4, dev='svg', fig.align='center'}
+ggplot(mpg, aes(x = displ, y = hwy, size = cyl)) + geom_point(alpha = 0.5)
+```
+
+---
+class:middle
+
+## Mapping a nominal discrete variable to `size`
+
+```{r eval=FALSE, tidy=FALSE}
+ggplot(mpg, aes(x = displ, y = hwy,
+                size = trans)) + #<<
+  geom_point(alpha = 0.5)
+```
+
+--
+
+```{r plot18, echo=FALSE, warning=TRUE, fig.height=3, dev='svg', fig.align='center'}
+ggplot(mpg, aes(x = displ, y = hwy, size = trans)) + 
+  geom_point(alpha = 0.5)
+```
+
+---
+class: middle
+
+## Other `aes()` mappings: `shape`
+
+```{r eval=FALSE, tidy=FALSE}
+ggplot(mpg, aes(x = displ, y = hwy,
+                shape = drv)) + #<<
+  geom_point()
+```
+
+--
+
+```{r plot13, echo=FALSE, warning=TRUE, fig.width=4, fig.height=2.75, dev='svg', fig.align='center'}
+ggplot(mpg, aes(x = displ, y = hwy, shape = drv)) + geom_point()
+```
+
+--
+
+```{r plot14, echo=FALSE, fig.height=1.5, dev='svg'}
+d=data.frame(a=c("a","b","c","d","e","f"))
+ggplot() +
+geom_point(data=d, mapping=aes(x=a, y=0.5, shape=a), size=10)+
+scale_x_discrete(name="") +
+scale_y_continuous(limits=c(0,1), breaks=NULL, name="") +
+scale_shape_discrete(solid=T)+
+  theme(legend.position = 'none')
+```
+
+---
+class: middle
+
+## Mapping a variable with more than 6 discrete levels to `shape` ?
+
+```{r eval=FALSE, tidy=FALSE}
+ggplot(data = mpg, aes(x = displ, y = hwy,
+                       shape = class)) + #<<
+  geom_point()
+```
+
+--
+
+```{r plot15, warning=TRUE, echo=FALSE, fig.height=2.5, fig.width=4.5, dev='svg', fig.align='center'}
+ggplot(mpg, aes(x = displ, y = hwy, shape = class)) +
+  geom_point()
+```
+
+---
+class: middle
+
+## What about mapping a continuous variable to `shape` ?
+
+```{r eval=FALSE, tidy=FALSE}
+ggplot(data = mpg, aes(x = displ, y = hwy,
+                       shape = displ)) + #<<
+geom_point()
+```
+
+--
+
+```{r plot16, error=TRUE, warning=TRUE, echo=FALSE, fig.height=4, dev='svg', fig.align='center'}
+ggplot(mpg, aes(x = displ, y = hwy, shape = displ)) +
+  geom_point()
+```
+
+---
+class: middle
+
+# Facetting
+
+The amount of data also makes a difference: Lots of data can be hard to distinguish
+
+--
+
+```{r plot19, echo=TRUE, warning=TRUE, fig.height=2.75, fig.width=5, dev='svg', fig.align='center'}
+ggplot(mpg, aes(displ, hwy, shape = class)) + geom_point()
+```
+
+---
+class: middle
+
+# Facetting
+
+An alternative solution is to use `facet_wrap()` or `facet_grid()`
+
+```{r eval=FALSE, tidy=FALSE}
+ggplot(mpg, aes(x = displ, y = hwy)) + geom_point() + 
+  facet_wrap(~ class) #<<
+```
+
+--
+
+```{r plot20, echo=FALSE, warning=TRUE, fig.height=4, dev='svg', fig.align='center'}
+ggplot(mpg, aes(x = displ, y = hwy)) + geom_point() + facet_wrap(~ class)
+```
+
+---
+class: middle
+
+# Facetting
+
+What does `nrow`, `ncol` or `scales` change inside `facet_wrap()` ?
+<br/>Hint: `?facet_wrap`
+
+```{r eval=FALSE, tidy=FALSE}
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point() +
+  facet_wrap(~ drv, nrow = 1, scales = 'free')  #<<
+```
+
+--
+
+```{r plot21, echo=FALSE, warning=TRUE, fig.height=3.5, dev='svg', fig.align='center'}
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point() +
+  facet_wrap(~ drv, nrow = 1, scales = 'free') 
+```
+
+---
+
+# Recap for scatter plots
+
+- Use `geom_point()` to create a scatter plot, mapping two variables to the `X` and `Y` axis.
+
+--
+
+- Additional aesthetic mappings (`aes()`) include `size`, `shape` and `color`.
+
+--
+
+- Different `aes()` attributes work better with different types of variables:
+  + `color` and `shape` work well with categorical variables
+  + `size` works well for continuous variables
+
+--
+
+- The amount of data also makes a difference: Lots of data can be hard to distinguish
+
+### `->` Use facetting !
+
+---
+class: middle, center, inverse
+
+# Histograms, frequency polygons and density plots
+
+---
+
+## Histograms, frequency polygons and density plots
+
+```{r eval=FALSE, tidy=FALSE}
+ggplot(mpg, aes(x = hwy)) + geom_histogram()
+```
+```{r eval=FALSE, tidy=FALSE}
+ggplot(mpg, aes(x = hwy)) + geom_freqpoly()
+```
+```{r eval=FALSE, tidy=FALSE}
+ggplot(mpg, aes(x = hwy)) + geom_density()
+```
+
+There is no `Y` mapping for these plots !
+
+---
+class: middle, center
+
+.pull-left[
+
+```{r plot 22, echo=FALSE, warning=FALSE, error=FALSE, fig.height=4, dev='svg'}
+ggplot(mpg, aes(hwy)) + geom_freqpoly(bins = 30)
+```
+
+]
+.pull-right[
+
+```{r plot23, echo=FALSE, warning=FALSE, error=FALSE, fig.height=4, dev='svg'}
+ggplot(mpg, aes(hwy)) + geom_density()
+```
+
+]
+
+```{r plot 24, echo=FALSE, warning=FALSE, fig.width=4, fig.height=3, fig.align='center', dev='svg'}
+ggplot(mpg, aes(x = hwy)) + geom_histogram(bins = 30)
+```
+
+---
+class: middle
+
+## Adjusting bins in a histogram: `binwidth`
+
+```{r eval=FALSE, tidy=FALSE}
+ggplot(mpg, aes(hwy)) + 
+  geom_histogram(binwidth = 2) #<<
+```
+
+--
+
+```{r plot25, echo=FALSE, warning=TRUE, fig.height=4, fig.align='center', dev='svg'}
+ggplot(mpg, aes(hwy)) + 
+  geom_histogram(binwidth = 2)
+```
+
+---
+class: middle
+
+## Adjusting `color` and `fill`
+
+```{r eval=FALSE, tidy=FALSE}
+ggplot(mpg, aes(hwy)) + 
+  geom_histogram(binwidth = 1, 
+                 fill = 'red', color = 'white') #<<
+```
+
+--
+
+```{r plot26, echo=FALSE, warning=TRUE, fig.height=3.5, fig.align='center', dev='svg'}
+ggplot(mpg, aes(hwy)) + 
+  geom_histogram(binwidth = 1, 
+                 fill = 'red', color = 'white') #<<
+```
+
+`-> fill` controls a different mapping than `color` in `geom_histogram()`
+
+---
+class: middle
+
+### However, `fill` and `binwidth` do not apply to `geom_freqpoly()` or `geom_density()`
+
+
+```{r eval=FALSE, tidy=FALSE}
+ggplot(mpg, aes(hwy)) + 
+  geom_freqpoly(binwidth = 1, fill = 'red', color = 'black')
+```
+
+```{r , echo=FALSE, warning=TRUE}
+p <- ggplot(mpg, aes(hwy)) + 
+  geom_freqpoly(binwidth = 1, fill = 'red', color = 'black')
+```
+
+```{r eval=FALSE, tidy=FALSE}
+ggplot(mpg, aes(hwy)) + 
+  geom_density(binwidth = 1, fill = 'red', color = 'white')
+```
+
+```{r , echo=FALSE, warning=TRUE}
+p <- ggplot(mpg, aes(hwy)) + 
+  geom_density(binwidth = 1, fill = 'red', color = 'white')
+```
+
+---
+class: middle
+
+# Mapping a discrete variable in `geom_histogram()`
+
+```{r plot28, echo=FALSE, warning=TRUE, fig.height=4, dev='svg', fig.align='center'}
+ggplot(mpg, aes(x = hwy, fill = drv)) + geom_histogram(binwidth = 1)
+```
+
+--
+
+```{r , eval = FALSE, echo=TRUE, warning=TRUE}
+ggplot(mpg, aes(x = hwy, fill = drv)) + geom_histogram(binwidth = 1)
+```
+
+---
+class: middle
+
+# Solve visibility problem
+
+.pull-left[
+
+```{r plot29, echo=FALSE, warning=TRUE, fig.height=4, dev='svg', fig.align='center'}
+ggplot(mpg, aes(x = hwy, color = drv, fill = drv)) +
+  geom_density(alpha = 0.5)
+```
+
+```{r plot30, echo=FALSE, warning=TRUE, fig.height=4, dev='svg', fig.align='center'}
+ggplot(mpg, aes(x = hwy, color = drv)) +
+  geom_freqpoly(binwidth = 1)
+```
+
+]
+
+.pull-right[
+
+```{r plot31, echo=FALSE, warning=TRUE, dev='svg', fig.align='center'}
+ggplot(mpg, aes(x = hwy, fill = drv)) +
+  geom_histogram(binwidth = 1) +
+  facet_wrap(~drv, ncol = 1)
+```
+
+]
+
+---
+class: middle
+
+# Homework
+
+```{r plot31a, echo=FALSE, warning=TRUE, fig.height=4, dev='svg', fig.align='center'}
+ggplot(mpg, aes(x = hwy, color = drv, fill = drv)) +
+  geom_density(alpha = 0.5)
+```
+
+--
+
+```{r , eval = FALSE, echo=TRUE, warning=TRUE}
+ggplot(mpg, aes(x = hwy, color = drv, fill = drv)) +
+  geom_density(alpha = 0.5)
+```
+
+---
+class: middle
+
+# Homework
+
+```{r plot31b, echo=FALSE, warning=TRUE, fig.height=4, dev='svg', fig.align='center'}
+ggplot(mpg, aes(x = hwy, color = drv)) +
+  geom_freqpoly(binwidth = 1)
+```
+
+--
+
+```{r , eval = FALSE, echo=TRUE, warning=TRUE}
+ggplot(mpg, aes(x = hwy, color = drv)) + geom_freqpoly(binwidth = 1)
+```
+
+---
+class: middle
+
+# Homework
+
+```{r plot31c, echo=FALSE, warning=TRUE, fig.height=4, dev='svg', fig.align='center'}
+ggplot(mpg, aes(x = hwy, fill = drv)) +
+  geom_histogram(binwidth = 1) +
+  facet_wrap(~drv, ncol = 1)
+```
+
+--
+
+```{r , eval = FALSE, echo=TRUE, warning=TRUE}
+ggplot(mpg, aes(x = hwy, fill = drv)) + geom_histogram(binwidth = 1) +
+  facet_wrap(~drv, ncol = 1)
+```
+
+---
+class: middle, center, inverse
+
+# Boxplots, jittered points and violin plots
+
+---
+
+## `geom_jitter()`
+
+.pull-left[
+
+```{r plot32, echo=FALSE, warning=TRUE, fig.height=4, fig.width=4 , dev='svg', fig.align='center'}
+ggplot(mpg, aes(x = drv, y = displ)) + geom_point()
+
+```
+]
+
+--
+
+.pull-right[
+
+```{r plot33, echo=FALSE, warning=TRUE, fig.height=4, fig.width=4 , dev='svg', fig.align='center'}
+ggplot(mpg, aes(x = drv, y = displ)) + geom_jitter(width = 0.1)
+
+```
+]
+
+---
+class: middle
+
+## `geom_boxplot()` and `geom_violin()`
+
+.pull-left[
+
+```{r plot34, echo=FALSE, warning=TRUE, fig.height=4, fig.width=4 , dev='svg', fig.align='center'}
+ggplot(mpg, aes(x = drv, y = displ)) + geom_boxplot()
+
+```
+]
+
+.pull-right[
+
+```{r plot35, echo=FALSE, warning=TRUE, fig.height=4, fig.width=4 , dev='svg', fig.align='center'}
+ggplot(mpg, aes(x = drv, y = displ)) + geom_violin()
+
+```
+]
+
+---
+background-image: url(https://miro.medium.com/max/9000/1*2c21SkzJMf3frPXPAR_gZA.png)
+background-size: 600px
+background-position: 50% 60%
+
+# What is a boxplot ?
+
+---
+background-image: url(https://r-graphics.org/R-Graphics-Cookbook-2e_files/figure-html/FIG-DISTRIBUTION-BOXPLOT-DIAGRAM-1.png)
+background-size: 600px
+background-position: 50% 60%
+
+# What is a boxplot ?
+
+---
+class: middle
+
+## Adjusting `color` and `fill` mappings
+
+```{r plot36, echo=FALSE, warning=TRUE, fig.height=4, dev='svg', fig.align='center'}
+ggplot(mpg, aes(x = drv, y = displ, color = drv)) + geom_boxplot()
+```
+
+--
+
+```{r , eval = FALSE, echo=TRUE, warning=TRUE}
+ggplot(mpg, 
+       aes(x = drv, y = displ, color = drv)) + #<<
+  geom_boxplot()
+```
+
+---
+class: middle
+
+## Adjusting `color` and `fill` mappings
+
+```{r plot37, echo=FALSE, warning=TRUE, fig.height=4, dev='svg', fig.align='center'}
+ggplot(mpg, aes(x = drv, y = displ, fill = class)) + geom_boxplot()
+```
+
+--
+
+```{r , eval = FALSE, echo=TRUE, warning=TRUE}
+ggplot(mpg, 
+       aes(x = drv, y = displ, fill = class)) + #<<
+  geom_boxplot()
+```
+
+---
+class: middle
+
+## Overlaying a boxplot with jittered points
+
+```{r plot39, echo=FALSE, warning=TRUE, fig.height=4, dev='svg', fig.align='center'}
+ggplot(mpg, aes(x = drv, y = displ, fill = drv)) +
+  geom_violin(trim = F) +
+  geom_jitter(width = 0.1)
+```
+
+--
+
+```{r , eval = FALSE, echo=TRUE, warning=TRUE}
+ggplot(mpg, aes(x = drv, y = displ, fill = drv)) +
+  geom_violin(trim = F) +
+  geom_jitter(width = 0.1)  #<<
+```
+
+---
+class: middle
+
+## Overlaying a boxplot with a violin plot
+
+Hint: Use `geom_violin(trim = FALSE)` and play with `geom_boxplot(width = ?)`
+
+```{r plot38, echo=FALSE, warning=TRUE, fig.height=3.5, dev='svg', fig.align='center'}
+ggplot(mpg, aes(x = drv, y = displ, fill = drv)) +
+  geom_violin(trim = F) +
+  geom_boxplot(width = 0.1, fill = "white")
+```
+
+--
+
+```{r , eval = FALSE, echo=TRUE, warning=TRUE}
+ggplot(mpg, aes(x = drv, y = displ, fill = drv)) +
+  geom_violin(trim = F) +  #<<
+  geom_boxplot(width = 0.1, fill = "white")  #<<
+```
+
+---
+class: middle, center, inverse
+
+# Bar plots
+
+---
+class: middle
+
+## `geom_bar()`
+
+```{r plot40, echo=TRUE, warning=TRUE, fig.height=3, fig.width=5, dev='svg', fig.align='center'}
+ggplot(mpg, aes(drv)) + geom_bar()
+```
+
+### `->` What is this function doing with `mpg` ?
+
+--
+
+By default, `geom_bar()` has the argument `stat = 'count'`, which summarizes a dataset by counting occurrences by a given variable
+
+---
+class: middle
+
+### `geom_bar(stat = 'identity')`
+
+However, it's possible to provide a summarized dataset that contains the values to be plotted.
+
+```{r plot41, echo=TRUE, warning=TRUE, fig.height=3, dev='svg', fig.align='center'}
+drugs <- data.frame(  drug   = c("a", "b", "c"),
+                      effect = c(4.2, 9.7, 6.1))
+ggplot(drugs, aes(drug, effect)) + geom_bar(stat = "identity")
+```
+
+---
+
+## `fill` and `color` work similarly in bar plots and histograms
+
+```{r plot42, echo=FALSE, warning=TRUE, fig.height=4, dev='svg', fig.align='center'}
+ggplot(drugs, aes(drug, effect)) + geom_bar(stat = "identity", fill="lightblue", colour="black")
+```
+
+--
+
+```{r , eval = FALSE, echo=TRUE, warning=TRUE}
+ggplot(drugs, aes(drug, effect)) + 
+  geom_bar(stat = "identity", fill="lightblue", colour="black") #<<
+```
+
+---
+class: middle
+
+## Grouping bars together using a second variable
+
+```{r eval=FALSE, tidy=FALSE}
+install.packages("gcookbook") ; library(gcookbook)
+```
+
+```{r eval=TRUE, echo=FALSE, tidy=FALSE, warning=FALSE}
+library(gcookbook)
+```
+
+.pull-left[
+```{r eval=FALSE, tidy=FALSE}
+ggplot(cabbage_exp,
+       aes(x = Date,
+           y = Weight,
+           fill=Cultivar)) +
+  geom_bar(stat = "identity",
+           position = "stack") #<<
+```
+]
+
+.pull-right[
+```{r eval=FALSE, tidy=FALSE}
+ggplot(cabbage_exp,
+       aes(x = Date,
+           y = Weight,
+           fill = Cultivar)) +
+  geom_bar(stat = "identity",
+           position = "dodge") #<<
+```
+]
+
+---
+class: middle
+
+## Grouping bars together using a second variable
+
+```{r eval=FALSE, tidy=FALSE}
+install.packages("gcookbook") ; library(gcookbook)
+```
+
+```{r eval=TRUE, echo=FALSE, tidy=FALSE, warning=FALSE}
+library(gcookbook)
+```
+
+.pull-left[
+```{r plot43, echo=TRUE, warning=TRUE, fig.height=3.25, fig.width=4 , dev='svg', fig.align='center'}
+ggplot(cabbage_exp,
+       aes(x = Date,
+           y = Weight,
+           fill=Cultivar)) +
+  geom_bar(stat = "identity",
+           position = "stack") #<<
+```
+]
+
+.pull-right[
+```{r plot44, echo=TRUE, warning=TRUE, fig.height=3.25, fig.width=4 , dev='svg', fig.align='center'}
+ggplot(cabbage_exp,
+       aes(x = Date,
+           y = Weight,
+           fill = Cultivar)) +
+  geom_bar(stat = "identity",
+           position = "dodge") #<<
+```
+]
+
+---
+class: middle
+
+## Reordering discrete variables and mapping `fill`
+
+```{r eval=TRUE, tidy=FALSE}
+library(gcookbook)
+upc <- subset(uspopchange, Change > 15)
+```
+
+```{r plot45a, echo=FALSE, warning=TRUE, fig.height=3.5, fig.width=9, fig.align='center', dev='svg'}
+ggplot(upc, aes(y = Change,
+                fill = Region, x = State)) +
+  geom_bar(stat = "identity")
+```
+
+--
+
+```{r eval=FALSE, tidy=FALSE}
+ggplot(upc, aes(y = Change,
+                fill = Region, x = reorder(State, Change))) + #<<
+  geom_bar(stat = "identity")
+```
+
+---
+class: middle
+
+## Reordering discrete variables and mapping `fill`
+
+```{r plot45b , echo=TRUE, warning=TRUE, fig.height=3.5, fig.width=9, fig.align='center', dev='svg'}
+ggplot(upc, aes(y = Change,
+                fill = Region, x = reorder(State, Change))) +
+  geom_bar(stat = "identity")
+```
+
+---
+class: middle, center, inverse
+
+# Line plots
+
+---
+class: middle
+
+## `geom_line()`
+
+Use the `economics` dataset to plot this:
+
+```{r plot46 , echo=FALSE, warning=TRUE, fig.height=4, dev='svg', fig.align='center'}
+ggplot(data = economics, aes(x = date, y = unemploy)) + 
+  geom_line()
+```
+
+--
+
+```{r eval=FALSE, tidy=FALSE}
+ggplot(data = economics, aes(x = date, y = unemploy)) + geom_line()
+```
+
+---
+class: middle
+
+## Executing operations directly inside `aes()`
+
+Divide `unemploy` rate into `pop` size
+
+```{r plot47 , echo=FALSE, warning=TRUE, fig.height=3.25, dev='svg', fig.align='center'}
+ggplot(data = economics, aes(x = date, y = unemploy / pop)) + geom_line()
+```
+
+--
+
+```{r eval=FALSE, tidy=FALSE}
+ggplot(data = economics, 
+       aes(x = date, y = unemploy / pop)) + #<<
+  geom_line()
+```
+
+---
+class: middle
+
+## Adjusting `color` mapping
+
+Use the following dataset to compare Tooth growth using two sources of Vitamin C
+
+```{r eval=TRUE, echo=TRUE, tidy=FALSE}
+library(gcookbook)
+library(plyr)
+tg <- ddply(ToothGrowth, c("supp", "dose"),
+            summarise, length = mean(len))
+```
+
+--
+
+```{r eval=require('DT'), tidy=FALSE, echo=F}
+knitr::kable(tg, format = 'html')
+```
+
+---
+class: middle
+
+## Adjusting `color` mapping
+
+```{r plot48 , echo=FALSE, warning=TRUE, fig.height=4, dev='svg', fig.align='center'}
+ggplot(tg, aes(x = dose, y = length, color = supp)) + geom_line()
+```
+
+--
+
+```{r eval=FALSE, tidy=FALSE}
+ggplot(tg, aes(x = dose, y = length, color = supp)) + geom_line()
+```
+
+---
+class: middle
+
+### `geom_line()` has a mapping for `linetype`
+
+```{r eval=FALSE, warning=TRUE}
+ggplot(tg, aes(x = dose, y = length, linetype = supp)) + geom_line()
+```
+
+--
+
+```{r plot49a , echo=FALSE, warning=TRUE, fig.height=3.25, dev='svg', fig.align='center'}
+ggplot(tg, aes(x = dose, y = length, linetype = supp)) + geom_line()
+```
+
+---
+class: middle
+
+## `linetype`
+
+`linetype` maps up to 12 distinct values to 12 pre-defined linetypes.
+
+```{r plot49b , echo=FALSE, warning=TRUE, fig.height=4, dev='svg', fig.align='center'}
+d=data.frame(lt = c("blank", "solid", "dashed", "dotted",
+                     "dotdash", "longdash", "twodash",
+                    "1F", "F1", "4C88C488", "12345678"))
+ggplot() +
+  scale_x_continuous(name="", limits=c(0,1)) +
+  scale_y_discrete(name="linetype") +
+  scale_linetype_identity() +
+  geom_segment(data=d, mapping=aes(x=0, xend=1, y=lt, yend=lt, linetype=lt)) +
+  theme(axis.title = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.text.x = element_blank())
+
+```
+
+---
+class: middle
+
+## Combining lines and points
+
+```{r plot50 , echo=FALSE, warning=TRUE, fig.height=3.5, dev='svg', fig.align='center'}
+ggplot(tg, aes(x = dose, y = length, shape = supp)) +
+  geom_line() +
+  geom_point()
+```
+
+--
+
+```{r eval=FALSE, tidy=FALSE}
+ggplot(tg, aes(x = dose, y = length, shape = supp)) +
+  geom_line() +
+  geom_point()
+```
+
+---
+class: middle
+
+## Modifying the appeareance of the plot
+
+```{r plot51 , echo=TRUE, warning=TRUE, fig.height=3.5, dev='svg', fig.align='center'}
+ggplot(tg, aes(x=dose, y=length, fill=supp)) +
+  geom_line() +
+  geom_point(size = 4, shape = 21) + #<<
+  scale_fill_manual(values=c("black","white")) #<<
+```
+
+---
+class: middle
+
+## Modifying the appeareance of the plot
+
+```{r plot52 , echo=TRUE, warning=TRUE, fig.height=3.5, dev='svg', fig.align='center'}
+ggplot(tg, aes(x=dose, y=length, fill=supp)) +
+  geom_line() + geom_point(size = 4, shape = 21) + 
+  scale_fill_manual(values=c("black","white"),
+                    labels = c('Orange juice','Ascorbic acid')) + #<<
+  theme_bw() # Explore different theme_XXX() configurations #<<
+```
+---
+class: middle
+
+## Modifying the appeareance of the plot
+
+```{r plot53 , echo=TRUE, warning=TRUE, fig.height=3.5, dev='svg', fig.align='center'}
+ggplot(tg, aes(x=dose, y=length, fill=supp)) +
+  geom_line() + geom_point(size = 4, shape = 21) + 
+  scale_fill_manual(values=c("black","white"),
+                    labels = c('Orange juice','Ascorbic acid')) +
+  theme_bw() +
+  labs(title = 'Effect of Vitamin C on tooth growth of Guinea pigs', #<<
+       x = 'Dose (mg/day)', y = 'Length (mm)', fill = 'Source') #<<
+```
+
+---
+class: middle
+
+# Output
+
+You can save a plot to a variable and manipulate it:
+- Customize it with additional layers.
+- Render it on screen with `print()`. This happens automatically when running R interactively, but not inside loops or functions.
+- Save it on disk with `ggsave()`
+
+--
+
+```{r eval=FALSE, tidy=FALSE}
+p <- ggplot(tg, aes(x=dose, y=length, fill=supp)) +
+  geom_line() + geom_point(size = 4, shape = 21) + 
+  scale_fill_manual(values=c("black","white"),
+                    labels = c('Orange juice','Ascorbic acid')) +
+  theme_bw() +
+  labs(title = 'Effect of Vitamin C on tooth growth of Guinea pigs', #<<
+       x = 'Dose (mg/day)', y = 'Length (mm)', fill = 'Source') #<<
+```
+
+```{r eval=FALSE, tidy=FALSE}
+ggsave(filename = 'myNicePlot.png', plot = p, width = 8, 
+       height = 6, units = 'in', dpi = 300)
+ggsave(filename = 'myNicePlot.pdf', plot = p, 
+       width = 8, height = 6)
+```
+
+---
+class: middle, invert
+
+# Additional resources
+
+- [`esquisse` R package](https://cran.r-project.org/web/packages/esquisse/vignettes/get-started.html). A 'shiny' gadget to create 'ggplot2' charts interactively with drag-and-drop to map your variables.
+- [`ggplot2` Cheatsheet](https://ggplot2.tidyverse.org/)
+- [Novartis graphics principles cheatsheet](https://graphicsprinciples.github.io/)
+
+# Credits
+
+All the contents presented in these slides were taken from:
+
+- [ggplot2: Elegant Graphics for Data Analysis](https://ggplot2-book.org/) by Hadley Wickham.
+- [R Graphics Cookbook: 2nd edition](https://r-graphics.org/) by Winston Chang
+
+---
+class: middle, center, inverse
+
+## Thank you !
+[d.ariza@cgiar.org](mailto:d.ariza@cgiar.org)

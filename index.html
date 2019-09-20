@@ -1,0 +1,1468 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+  <head>
+    <title>Graphics and Visualization</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Daniel Ariza Suarez" />
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/default-fonts.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Graphics and Visualization<br/>
+## R for beginners (?) course
+### Daniel Ariza Suarez
+### <a href="mailto:d.ariza@cgiar.org">&lt;d.ariza@cgiar.org&gt;</a>
+### 2019-09-17 (updated: 2019-09-20)
+
+---
+
+class: center, middle, inverse
+
+
+
+# ggplot2
+
+---
+class: middle
+
+# What is ggplot2 ?
+
+
+--
+
+- **ggplot2** is an `R` package for producing statistical or data graphics
+
+--
+
+
+```r
+install.packages("ggplot2")
+library(ggplot)
+```
+
+--
+
+- Its carefully chosen defaults mean that you can produce publication-quality graphics in seconds: **You can focus on creating the graph that best reveal the message in your data**
+
+---
+
+# Hands on `ggplot2`
+
+For our first plot, we will use the dataset **`mpg`**
+
+**`mpg`** contains information about the fuel economy of popular car models in 1999 and 2008, collected by the [US Environmental Protection Agency](http://fueleconomy.gov).
+You can access the data in **`mpg`** by loading `ggplot2`:
+
+
+```r
+library(ggplot)
+View(mpg)
+str(mpg)
+```
+
+--
+
+- `cty` and `hwy` describe miles per gallon in the city and the highway
+- `displ` is the engine displacement in litres
+- `drv` is the drivetrain: (f) Front wheel (f) drive ; (r) Rear wheel drive ; (4) 4 wheel drive
+- `model` is the model of the car
+- `class` is a categorical variable describing the 'type' of car: Two-seatter, SUV, compact, etc.
+
+---
+
+# `mpg`
+
+
+```r
+str(mpg)
+```
+
+```
+## Classes 'tbl_df', 'tbl' and 'data.frame':	234 obs. of  11 variables:
+##  $ manufacturer: chr  "audi" "audi" "audi" "audi" ...
+##  $ model       : chr  "a4" "a4" "a4" "a4" ...
+##  $ displ       : num  1.8 1.8 2 2 2.8 2.8 3.1 1.8 1.8 2 ...
+##  $ year        : int  1999 1999 2008 2008 1999 1999 2008 1999 1999 2008 ...
+##  $ cyl         : int  4 4 4 4 6 6 6 4 4 4 ...
+##  $ trans       : chr  "auto(l5)" "manual(m5)" "manual(m6)" "auto(av)" ...
+##  $ drv         : chr  "f" "f" "f" "f" ...
+##  $ cty         : int  18 21 20 21 16 18 18 18 16 20 ...
+##  $ hwy         : int  29 29 31 30 26 26 27 26 25 28 ...
+##  $ fl          : chr  "p" "p" "p" "p" ...
+##  $ class       : chr  "compact" "compact" "compact" "compact" ...
+```
+
+---
+class: middle
+
+# Quick problem
+
+Most countries use fuel consumption (fuel consumed over fixed distance) rather than fuel economy (distance traveled with fixed amount of fuel).
+
+Add a new column to `mpg` converting `cty` into ***l / 100km*** ?
+
+$$\frac{l}{100\ km}=\frac{mi}{gal}\ × \frac{1.609\ km}{1\ mi}\ × \frac{1\ gal}{3.785\ l}\ $$
+
+--
+
+
+```r
+mpg$fc_cty &lt;- (mpg$cty) * (1.609 / 3.785)
+```
+
+--
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; manufacturer &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; model &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; year &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; cyl &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; cty &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; fc_cty &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; audi &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; a4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1999 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 18 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7.651783 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; audi &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; a4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1999 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 21 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 8.927081 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; audi &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; a4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2008 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 20 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 8.501981 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; audi &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; a4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2008 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 21 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 8.927081 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; audi &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; a4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1999 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 16 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 6.801585 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+---
+
+# My first plot (?)
+
+
+```r
+ggplot(data = mpg, aes(x = displ, y = hwy)) + geom_point()
+```
+
+--
+
+![](index_files/figure-html/plot1-1.svg)&lt;!-- --&gt;
+
+---
+
+## Every `ggplot2` plot has three main components:
+
+
+```r
+ggplot(data = mpg, aes(x = displ, y = hwy)) + geom_point()
+```
+
+--
+
+- **Data**:     `mpg`
+
+--
+
+- **Aesthetic mappings**: Association between variables in the data and visual properties.
+ + `displ -&gt;` *X* axis
+ + `hwy   -&gt;` *Y* axis
+
+--
+ + *Quasiquotation:* `aes()` is a *quoting function*. This means that its inputs are quoted to be evaluated in the context of the data
+
+--
+
+- **Layer**: Describes how to render each observation. In this case, we used points as the main layer. Layers in ggplot are usually created with a **`geom_XXX()`** function.
+
+### -&gt; The grammar of graphics
+
+---
+class: middle
+
+
+```r
+ ggplot(data = mpg, aes(x = displ, y = hwy)) + geom_point()
+```
+
+![](index_files/figure-html/plot1_1-1.svg)&lt;!-- --&gt;
+
+The structure of this function call shows that **Data** and **Aesthetic mappings** are passed to ggplot2 using the **`ggplot()`** function
+
+Then layers are added on with **`+`**
+
+---
+class: middle
+
+# Hands on `ggplot2`
+
+Explain each of the following plots.
+Find out what the dataset contains and what the plotted variables mean.
+
+
+```r
+*ggplot(data = diamonds, aes(x = carat, y = price)) + geom_point()
+```
+
+```r
+*ggplot(data = economics, aes(x = date, y = unemploy)) + geom_line()
+```
+
+```r
+*ggplot(data = mpg, aes(x = cty)) + geom_histogram()
+```
+
+---
+class: middle
+
+
+```r
+ggplot(data = diamonds, aes(x = carat, y = price)) + geom_point()
+```
+
+&lt;img src="index_files/figure-html/plot2-1.svg" style="display: block; margin: auto;" /&gt;
+
+--
+
+- `carat`: Weight of the diamond
+- `price`: Price in US dollars
+
+---
+class: middle
+
+
+```r
+ggplot(data = economics, aes(x = date, y = unemploy)) + geom_line()
+```
+
+&lt;img src="index_files/figure-html/plot3-1.svg" style="display: block; margin: auto;" /&gt;
+
+--
+
+- `date`: Month of data collection
+- `unemploy`: Number of unemployed in thousands
+
+---
+class: middle
+
+
+```r
+ggplot(data = mpg, aes(x = cty)) + geom_histogram()
+```
+
+```
+## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+```
+
+&lt;img src="index_files/figure-html/plot4-1.svg" style="display: block; margin: auto;" /&gt;
+
+--
+
+&lt;br/&gt;The [warning message](https://www.dummies.com/programming/r/how-to-read-errors-and-warnings-in-r/) shows that this histogram has 30 bins (ranges or bars) by default, and they should be modified accordingly.
+
+---
+class: middle, center, inverse
+
+# Scatterplots
+
+---
+
+## Additional features of `geom_point()`
+Let's play with other features of **`geom_point()`**
+
+
+```r
+ggplot(mpg, aes(x = displ, y = hwy)) + geom_point(shape = 12)
+```
+
+```r
+ggplot(mpg, aes(x = displ, y = hwy)) + geom_point(color = 'red')
+```
+
+```r
+ggplot(mpg, aes(x = displ, y = hwy)) + geom_point(size = 3)
+```
+
+---
+
+
+```r
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point(shape = 21, colour = "blue", size = 5)
+```
+
+&lt;img src="index_files/figure-html/plot5-1.svg" style="display: block; margin: auto;" /&gt;
+--
+
+### What is `shape = 21` ?
+### How blue is `'blue'` ?
+
+---
+class: middle
+
+## What is `shape = 21` ?
+
+&lt;img src="index_files/figure-html/plot27-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+background-image: url(https://www.datanovia.com/en/wp-content/uploads/dn-tutorials/ggplot2/images/0100-r-color-names-plot-1.png)
+background-size: 500px
+background-position: 50% 70%
+
+# How blue is `'blue'` ?
+
+Check http://www.stat.columbia.edu/~tzheng/files/Rcolor.pdf
+
+---
+class: middle
+
+## Other `aes()` mappings: `color`
+
+
+```r
+ggplot(mpg, aes(x = displ, y = hwy, color = class)) + geom_point()
+```
+
+--
+
+&lt;img src="index_files/figure-html/plot6-1.svg" style="display: block; margin: auto;" /&gt;
+
+- `ggplot2` gives each point a unique color corresponding to its class.&lt;br/&gt;
+- The legend allows us to read data values from the colour, showing us that the group of cars with unusually high fuel economy for their engine size are two seaters: cars with big engines but lightweight bodies.
+
+---
+
+background-image: url(https://ggplot2-book.org/diagrams/colour-wheel.png)
+background-size: 300px
+background-position: 80% 60%
+
+# Color selection by ggplot2
+
+
+```r
+ggplot(mpg, aes(x = displ, y = hwy, color = class)) + geom_point()
+```
+
+&lt;img src="index_files/figure-html/plot7-1.svg" style="display: block; margin: auto auto auto 0;" /&gt;
+
+Check [colors in ggplot2](&lt;http://www.cookbook-r.com/Graphs/Colors_(ggplot2)&gt;)
+
+---
+class: middle
+
+# Passing arguments to ggplot2
+
+.pull-left[
+
+
+```r
+ggplot(data = mpg) +
+ geom_point(aes(  x   = displ,
+                  y   = hwy,
+                color = class))
+```
+
+![](index_files/figure-html/plot8-1.svg)&lt;!-- --&gt;
+
+]
+
+.pull-right[
+
+
+```r
+ggplot(data  = mpg,
+       aes(x = displ,
+           y = hwy)) +
+ geom_point(aes(color = class))
+```
+
+![](index_files/figure-html/plot9-1.svg)&lt;!-- --&gt;
+
+]
+
+Any of these structures generates the same plot
+
+---
+class: middle
+
+## What if we map a continuous variable to `color` ?
+
+
+```r
+ggplot(mpg, aes(x = displ, y = hwy,
+*               color = cty)) +
+  geom_point()
+```
+
+--
+
+&lt;img src="index_files/figure-html/plot10-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Mapping the same variable twice ...
+
+
+```r
+ggplot(data = diamonds) +
+* geom_point(aes(x = carat, y = price, color = price))
+```
+--
+
+&lt;img src="index_files/figure-html/plot11-1.svg" style="display: block; margin: auto;" /&gt;
+
+### ... looks fancy, but makes no sense.
+
+---
+
+# Adjusting transparency with `alpha`
+
+
+```r
+ggplot(data = diamonds, aes(x = carat, y = price)) +
+* geom_point(alpha = 0.1)
+```
+
+&lt;img src="index_files/figure-html/plot12-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+class: middle
+
+## Other `aes()` mappings: `size`
+
+
+```r
+ ggplot(mpg, aes(x = displ, y = hwy,
+*                size = cyl)) +
+   geom_point(alpha = 0.1)
+```
+
+--
+
+&lt;img src="index_files/figure-html/plot17-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+class:middle
+
+## Mapping a nominal discrete variable to `size`
+
+
+```r
+ggplot(mpg, aes(x = displ, y = hwy,
+*               size = trans)) +
+  geom_point(alpha = 0.5)
+```
+
+--
+
+
+```
+## Warning: Using size for a discrete variable is not advised.
+```
+
+&lt;img src="index_files/figure-html/plot18-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+class: middle
+
+## Other `aes()` mappings: `shape`
+
+
+```r
+ggplot(mpg, aes(x = displ, y = hwy,
+*               shape = drv)) +
+  geom_point()
+```
+
+--
+
+&lt;img src="index_files/figure-html/plot13-1.svg" style="display: block; margin: auto;" /&gt;
+
+--
+
+![](index_files/figure-html/plot14-1.svg)&lt;!-- --&gt;
+
+---
+class: middle
+
+## Mapping a variable with more than 6 discrete levels to `shape` ?
+
+
+```r
+ggplot(data = mpg, aes(x = displ, y = hwy,
+*                      shape = class)) +
+  geom_point()
+```
+
+--
+
+
+```
+## Warning: The shape palette can deal with a maximum of 6 discrete values
+## because more than 6 becomes difficult to discriminate; you have 7.
+## Consider specifying shapes manually if you must have them.
+```
+
+```
+## Warning: Removed 62 rows containing missing values (geom_point).
+```
+
+&lt;img src="index_files/figure-html/plot15-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+class: middle
+
+## What about mapping a continuous variable to `shape` ?
+
+
+```r
+ggplot(data = mpg, aes(x = displ, y = hwy,
+*                      shape = displ)) +
+geom_point()
+```
+
+--
+
+
+```
+## Error: A continuous variable can not be mapped to shape
+```
+
+&lt;img src="index_files/figure-html/plot16-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+class: middle
+
+# Facetting
+
+The amount of data also makes a difference: Lots of data can be hard to distinguish
+
+--
+
+
+```r
+ggplot(mpg, aes(displ, hwy, shape = class)) + geom_point()
+```
+
+```
+## Warning: The shape palette can deal with a maximum of 6 discrete values
+## because more than 6 becomes difficult to discriminate; you have 7.
+## Consider specifying shapes manually if you must have them.
+```
+
+```
+## Warning: Removed 62 rows containing missing values (geom_point).
+```
+
+&lt;img src="index_files/figure-html/plot19-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+class: middle
+
+# Facetting
+
+An alternative solution is to use `facet_wrap()` or `facet_grid()`
+
+
+```r
+ggplot(mpg, aes(x = displ, y = hwy)) + geom_point() + 
+* facet_wrap(~ class)
+```
+
+--
+
+&lt;img src="index_files/figure-html/plot20-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+class: middle
+
+# Facetting
+
+What does `nrow`, `ncol` or `scales` change inside `facet_wrap()` ?
+&lt;br/&gt;Hint: `?facet_wrap`
+
+
+```r
+ggplot(mpg, aes(x = displ, y = hwy)) +
+  geom_point() +
+* facet_wrap(~ drv, nrow = 1, scales = 'free')
+```
+
+--
+
+&lt;img src="index_files/figure-html/plot21-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Recap for scatter plots
+
+- Use `geom_point()` to create a scatter plot, mapping two variables to the `X` and `Y` axis.
+
+--
+
+- Additional aesthetic mappings (`aes()`) include `size`, `shape` and `color`.
+
+--
+
+- Different `aes()` attributes work better with different types of variables:
+  + `color` and `shape` work well with categorical variables
+  + `size` works well for continuous variables
+
+--
+
+- The amount of data also makes a difference: Lots of data can be hard to distinguish
+
+### `-&gt;` Use facetting !
+
+---
+class: middle, center, inverse
+
+# Histograms, frequency polygons and density plots
+
+---
+
+## Histograms, frequency polygons and density plots
+
+
+```r
+ggplot(mpg, aes(x = hwy)) + geom_histogram()
+```
+
+```r
+ggplot(mpg, aes(x = hwy)) + geom_freqpoly()
+```
+
+```r
+ggplot(mpg, aes(x = hwy)) + geom_density()
+```
+
+There is no `Y` mapping for these plots !
+
+---
+class: middle, center
+
+.pull-left[
+
+![](index_files/figure-html/plot 22-1.svg)&lt;!-- --&gt;
+
+]
+.pull-right[
+
+![](index_files/figure-html/plot23-1.svg)&lt;!-- --&gt;
+
+]
+
+&lt;img src="index_files/figure-html/plot 24-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+class: middle
+
+## Adjusting bins in a histogram: `binwidth`
+
+
+```r
+ggplot(mpg, aes(hwy)) + 
+* geom_histogram(binwidth = 2)
+```
+
+--
+
+&lt;img src="index_files/figure-html/plot25-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+class: middle
+
+## Adjusting `color` and `fill`
+
+
+```r
+ggplot(mpg, aes(hwy)) + 
+  geom_histogram(binwidth = 1, 
+*                fill = 'red', color = 'white')
+```
+
+--
+
+&lt;img src="index_files/figure-html/plot26-1.svg" style="display: block; margin: auto;" /&gt;
+
+`-&gt; fill` controls a different mapping than `color` in `geom_histogram()`
+
+---
+class: middle
+
+### However, `fill` and `binwidth` do not apply to `geom_freqpoly()` or `geom_density()`
+
+
+
+```r
+ggplot(mpg, aes(hwy)) + 
+  geom_freqpoly(binwidth = 1, fill = 'red', color = 'black')
+```
+
+
+```
+## Warning: Ignoring unknown parameters: fill
+```
+
+
+```r
+ggplot(mpg, aes(hwy)) + 
+  geom_density(binwidth = 1, fill = 'red', color = 'white')
+```
+
+
+```
+## Warning: Ignoring unknown parameters: binwidth
+```
+
+---
+class: middle
+
+# Mapping a discrete variable in `geom_histogram()`
+
+&lt;img src="index_files/figure-html/plot28-1.svg" style="display: block; margin: auto;" /&gt;
+
+--
+
+
+```r
+ggplot(mpg, aes(x = hwy, fill = drv)) + geom_histogram(binwidth = 1)
+```
+
+---
+class: middle
+
+# Solve visibility problem
+
+.pull-left[
+
+&lt;img src="index_files/figure-html/plot29-1.svg" style="display: block; margin: auto;" /&gt;
+
+&lt;img src="index_files/figure-html/plot30-1.svg" style="display: block; margin: auto;" /&gt;
+
+]
+
+.pull-right[
+
+&lt;img src="index_files/figure-html/plot31-1.svg" style="display: block; margin: auto;" /&gt;
+
+]
+
+---
+class: middle
+
+# Homework
+
+&lt;img src="index_files/figure-html/plot31a-1.svg" style="display: block; margin: auto;" /&gt;
+
+--
+
+
+```r
+ggplot(mpg, aes(x = hwy, color = drv, fill = drv)) +
+  geom_density(alpha = 0.5)
+```
+
+---
+class: middle
+
+# Homework
+
+&lt;img src="index_files/figure-html/plot31b-1.svg" style="display: block; margin: auto;" /&gt;
+
+--
+
+
+```r
+ggplot(mpg, aes(x = hwy, color = drv)) + geom_freqpoly(binwidth = 1)
+```
+
+---
+class: middle
+
+# Homework
+
+&lt;img src="index_files/figure-html/plot31c-1.svg" style="display: block; margin: auto;" /&gt;
+
+--
+
+
+```r
+ggplot(mpg, aes(x = hwy, fill = drv)) + geom_histogram(binwidth = 1) +
+  facet_wrap(~drv, ncol = 1)
+```
+
+---
+class: middle, center, inverse
+
+# Boxplots, jittered points and violin plots
+
+---
+
+## `geom_jitter()`
+
+.pull-left[
+
+&lt;img src="index_files/figure-html/plot32-1.svg" style="display: block; margin: auto;" /&gt;
+]
+
+--
+
+.pull-right[
+
+&lt;img src="index_files/figure-html/plot33-1.svg" style="display: block; margin: auto;" /&gt;
+]
+
+---
+class: middle
+
+## `geom_boxplot()` and `geom_violin()`
+
+.pull-left[
+
+&lt;img src="index_files/figure-html/plot34-1.svg" style="display: block; margin: auto;" /&gt;
+]
+
+.pull-right[
+
+&lt;img src="index_files/figure-html/plot35-1.svg" style="display: block; margin: auto;" /&gt;
+]
+
+---
+background-image: url(https://miro.medium.com/max/9000/1*2c21SkzJMf3frPXPAR_gZA.png)
+background-size: 600px
+background-position: 50% 60%
+
+# What is a boxplot ?
+
+---
+background-image: url(https://r-graphics.org/R-Graphics-Cookbook-2e_files/figure-html/FIG-DISTRIBUTION-BOXPLOT-DIAGRAM-1.png)
+background-size: 600px
+background-position: 50% 60%
+
+# What is a boxplot ?
+
+---
+class: middle
+
+## Adjusting `color` and `fill` mappings
+
+&lt;img src="index_files/figure-html/plot36-1.svg" style="display: block; margin: auto;" /&gt;
+
+--
+
+
+```r
+ggplot(mpg, 
+*      aes(x = drv, y = displ, color = drv)) +
+  geom_boxplot()
+```
+
+---
+class: middle
+
+## Adjusting `color` and `fill` mappings
+
+&lt;img src="index_files/figure-html/plot37-1.svg" style="display: block; margin: auto;" /&gt;
+
+--
+
+
+```r
+ggplot(mpg, 
+*      aes(x = drv, y = displ, fill = class)) +
+  geom_boxplot()
+```
+
+---
+class: middle
+
+## Overlaying a boxplot with jittered points
+
+&lt;img src="index_files/figure-html/plot39-1.svg" style="display: block; margin: auto;" /&gt;
+
+--
+
+
+```r
+ggplot(mpg, aes(x = drv, y = displ, fill = drv)) +
+  geom_violin(trim = F) +
+* geom_jitter(width = 0.1)
+```
+
+---
+class: middle
+
+## Overlaying a boxplot with a violin plot
+
+Hint: Use `geom_violin(trim = FALSE)` and play with `geom_boxplot(width = ?)`
+
+&lt;img src="index_files/figure-html/plot38-1.svg" style="display: block; margin: auto;" /&gt;
+
+--
+
+
+```r
+ggplot(mpg, aes(x = drv, y = displ, fill = drv)) +
+* geom_violin(trim = F) +
+* geom_boxplot(width = 0.1, fill = "white")
+```
+
+---
+class: middle, center, inverse
+
+# Bar plots
+
+---
+class: middle
+
+## `geom_bar()`
+
+
+```r
+ggplot(mpg, aes(drv)) + geom_bar()
+```
+
+&lt;img src="index_files/figure-html/plot40-1.svg" style="display: block; margin: auto;" /&gt;
+
+### `-&gt;` What is this function doing with `mpg` ?
+
+--
+
+By default, `geom_bar()` has the argument `stat = 'count'`, which summarizes a dataset by counting occurrences by a given variable
+
+---
+class: middle
+
+### `geom_bar(stat = 'identity')`
+
+However, it's possible to provide a summarized dataset that contains the values to be plotted.
+
+
+```r
+drugs &lt;- data.frame(  drug   = c("a", "b", "c"),
+                      effect = c(4.2, 9.7, 6.1))
+ggplot(drugs, aes(drug, effect)) + geom_bar(stat = "identity")
+```
+
+&lt;img src="index_files/figure-html/plot41-1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+## `fill` and `color` work similarly in bar plots and histograms
+
+&lt;img src="index_files/figure-html/plot42-1.svg" style="display: block; margin: auto;" /&gt;
+
+--
+
+
+```r
+ggplot(drugs, aes(drug, effect)) + 
+* geom_bar(stat = "identity", fill="lightblue", colour="black")
+```
+
+---
+class: middle
+
+## Grouping bars together using a second variable
+
+
+```r
+install.packages("gcookbook") ; library(gcookbook)
+```
+
+
+
+.pull-left[
+
+```r
+ggplot(cabbage_exp,
+       aes(x = Date,
+           y = Weight,
+           fill=Cultivar)) +
+  geom_bar(stat = "identity",
+*          position = "stack")
+```
+]
+
+.pull-right[
+
+```r
+ggplot(cabbage_exp,
+       aes(x = Date,
+           y = Weight,
+           fill = Cultivar)) +
+  geom_bar(stat = "identity",
+*          position = "dodge")
+```
+]
+
+---
+class: middle
+
+## Grouping bars together using a second variable
+
+
+```r
+install.packages("gcookbook") ; library(gcookbook)
+```
+
+
+
+.pull-left[
+
+```r
+ggplot(cabbage_exp,
+       aes(x = Date,
+           y = Weight,
+           fill=Cultivar)) +
+  geom_bar(stat = "identity",
+*          position = "stack")
+```
+
+&lt;img src="index_files/figure-html/plot43-1.svg" style="display: block; margin: auto;" /&gt;
+]
+
+.pull-right[
+
+```r
+ggplot(cabbage_exp,
+       aes(x = Date,
+           y = Weight,
+           fill = Cultivar)) +
+  geom_bar(stat = "identity",
+*          position = "dodge")
+```
+
+&lt;img src="index_files/figure-html/plot44-1.svg" style="display: block; margin: auto;" /&gt;
+]
+
+---
+class: middle
+
+## Reordering discrete variables and mapping `fill`
+
+
+```r
+library(gcookbook)
+upc &lt;- subset(uspopchange, Change &gt; 15)
+```
+
+&lt;img src="index_files/figure-html/plot45a-1.svg" style="display: block; margin: auto;" /&gt;
+
+--
+
+
+```r
+ggplot(upc, aes(y = Change,
+*               fill = Region, x = reorder(State, Change))) +
+  geom_bar(stat = "identity")
+```
+
+---
+class: middle
+
+## Reordering discrete variables and mapping `fill`
+
+
+```r
+ggplot(upc, aes(y = Change,
+                fill = Region, x = reorder(State, Change))) +
+  geom_bar(stat = "identity")
+```
+
+&lt;img src="index_files/figure-html/plot45b -1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+class: middle, center, inverse
+
+# Line plots
+
+---
+class: middle
+
+## `geom_line()`
+
+Use the `economics` dataset to plot this:
+
+&lt;img src="index_files/figure-html/plot46 -1.svg" style="display: block; margin: auto;" /&gt;
+
+--
+
+
+```r
+ggplot(data = economics, aes(x = date, y = unemploy)) + geom_line()
+```
+
+---
+class: middle
+
+## Executing operations directly inside `aes()`
+
+Divide `unemploy` rate into `pop` size
+
+&lt;img src="index_files/figure-html/plot47 -1.svg" style="display: block; margin: auto;" /&gt;
+
+--
+
+
+```r
+ggplot(data = economics, 
+*      aes(x = date, y = unemploy / pop)) +
+  geom_line()
+```
+
+---
+class: middle
+
+## Adjusting `color` mapping
+
+Use the following dataset to compare Tooth growth using two sources of Vitamin C
+
+
+```r
+library(gcookbook)
+library(plyr)
+tg &lt;- ddply(ToothGrowth, c("supp", "dose"),
+            summarise, length = mean(len))
+```
+
+--
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; supp &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; dose &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; length &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; OJ &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 13.23 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; OJ &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 22.70 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; OJ &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2.0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 26.06 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; VC &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7.98 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; VC &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 16.77 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; VC &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2.0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 26.14 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+---
+class: middle
+
+## Adjusting `color` mapping
+
+&lt;img src="index_files/figure-html/plot48 -1.svg" style="display: block; margin: auto;" /&gt;
+
+--
+
+
+```r
+ggplot(tg, aes(x = dose, y = length, color = supp)) + geom_line()
+```
+
+---
+class: middle
+
+### `geom_line()` has a mapping for `linetype`
+
+
+```r
+ggplot(tg, aes(x = dose, y = length, linetype = supp)) + geom_line()
+```
+
+--
+
+&lt;img src="index_files/figure-html/plot49a -1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+class: middle
+
+## `linetype`
+
+`linetype` maps up to 12 distinct values to 12 pre-defined linetypes.
+
+&lt;img src="index_files/figure-html/plot49b -1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+class: middle
+
+## Combining lines and points
+
+&lt;img src="index_files/figure-html/plot50 -1.svg" style="display: block; margin: auto;" /&gt;
+
+--
+
+
+```r
+ggplot(tg, aes(x = dose, y = length, shape = supp)) +
+  geom_line() +
+  geom_point()
+```
+
+---
+class: middle
+
+## Modifying the appeareance of the plot
+
+
+```r
+ggplot(tg, aes(x=dose, y=length, fill=supp)) +
+  geom_line() +
+* geom_point(size = 4, shape = 21) +
+* scale_fill_manual(values=c("black","white"))
+```
+
+&lt;img src="index_files/figure-html/plot51 -1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+class: middle
+
+## Modifying the appeareance of the plot
+
+
+```r
+ggplot(tg, aes(x=dose, y=length, fill=supp)) +
+  geom_line() + geom_point(size = 4, shape = 21) + 
+  scale_fill_manual(values=c("black","white"),
+*                   labels = c('Orange juice','Ascorbic acid')) +
+* theme_bw() # Explore different theme_XXX() configurations
+```
+
+&lt;img src="index_files/figure-html/plot52 -1.svg" style="display: block; margin: auto;" /&gt;
+---
+class: middle
+
+## Modifying the appeareance of the plot
+
+
+```r
+ggplot(tg, aes(x=dose, y=length, fill=supp)) +
+  geom_line() + geom_point(size = 4, shape = 21) + 
+  scale_fill_manual(values=c("black","white"),
+                    labels = c('Orange juice','Ascorbic acid')) +
+  theme_bw() +
+* labs(title = 'Effect of Vitamin C on tooth growth of Guinea pigs',
+*      x = 'Dose (mg/day)', y = 'Length (mm)', fill = 'Source')
+```
+
+&lt;img src="index_files/figure-html/plot53 -1.svg" style="display: block; margin: auto;" /&gt;
+
+---
+class: middle
+
+# Output
+
+You can save a plot to a variable and manipulate it:
+- Customize it with additional layers.
+- Render it on screen with `print()`. This happens automatically when running R interactively, but not inside loops or functions.
+- Save it on disk with `ggsave()`
+
+--
+
+
+```r
+p &lt;- ggplot(tg, aes(x=dose, y=length, fill=supp)) +
+  geom_line() + geom_point(size = 4, shape = 21) + 
+  scale_fill_manual(values=c("black","white"),
+                    labels = c('Orange juice','Ascorbic acid')) +
+  theme_bw() +
+* labs(title = 'Effect of Vitamin C on tooth growth of Guinea pigs',
+*      x = 'Dose (mg/day)', y = 'Length (mm)', fill = 'Source')
+```
+
+
+```r
+ggsave(filename = 'myNicePlot.png', plot = p, width = 8, 
+       height = 6, units = 'in', dpi = 300)
+ggsave(filename = 'myNicePlot.pdf', plot = p, 
+       width = 8, height = 6)
+```
+
+---
+class: middle, invert
+
+# Additional resources
+
+- [`esquisse` R package](https://cran.r-project.org/web/packages/esquisse/vignettes/get-started.html). A 'shiny' gadget to create 'ggplot2' charts interactively with drag-and-drop to map your variables.
+- [`ggplot2` Cheatsheet](https://ggplot2.tidyverse.org/)
+- [Novartis graphics principles cheatsheet](https://graphicsprinciples.github.io/)
+
+# Credits
+
+All the contents presented in these slides were taken from:
+
+- [ggplot2: Elegant Graphics for Data Analysis](https://ggplot2-book.org/) by Hadley Wickham.
+- [R Graphics Cookbook: 2nd edition](https://r-graphics.org/) by Winston Chang
+
+---
+class: middle, center, inverse
+
+## Thank you !
+[d.ariza@cgiar.org](mailto:d.ariza@cgiar.org)
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
